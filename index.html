@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>오시랑께 | 전라남도 여행 추천</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="data.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --green:#1e6b3c;--green2:#2d8a52;--green-bg:#f0f7f3;
+      --border:#e4e9e6;--text:#1a2420;--sub:#5a7060;--muted:#94a89c;
+      --white:#fff;--bg:#f7f9f7;--radius:8px;
+      --shadow:0 1px 4px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
+    }
+    body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;}
+
+    /* GNB */
+    .gnb{background:var(--white);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 40px;position:sticky;top:0;z-index:200;}
+    .gnb-logo{font-size:17px;font-weight:700;color:var(--green);letter-spacing:-.5px;}
+    .gnb-logo span{color:var(--text);font-weight:300;}
+    .gnb-nav{display:flex;gap:32px;margin-left:48px;}
+    .gnb-nav a{font-size:13px;color:var(--sub);text-decoration:none;font-weight:500;transition:color .15s;cursor:pointer;}
+    .gnb-nav a:hover,.gnb-nav a.active{color:var(--green);}
+    .gnb-right{margin-left:auto;display:flex;align-items:center;gap:16px;}
+    .gnb-weather{font-size:12px;color:var(--sub);display:flex;align-items:center;gap:5px;}
+    .gnb-btn{font-size:12px;color:var(--sub);background:none;border:1px solid var(--border);border-radius:4px;padding:5px 12px;cursor:pointer;font-family:inherit;transition:all .15s;}
+    .gnb-btn:hover{border-color:var(--green);color:var(--green);}
+
+    /* 레이아웃 */
+    .layout{display:flex;min-height:calc(100vh - 56px);}
+
+    /* 사이드바 */
+    .sidebar{width:272px;flex-shrink:0;background:var(--white);border-right:1px solid var(--border);padding:24px 20px;display:flex;flex-direction:column;gap:22px;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;}
+    .sb-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;}
+    .filter-chips{display:flex;flex-direction:column;gap:5px;}
+    .filter-chip{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--white);cursor:pointer;font-size:13px;color:var(--text);font-family:inherit;font-weight:500;transition:all .15s;text-align:left;}
+    .filter-chip:hover{border-color:var(--green2);background:var(--green-bg);}
+    .filter-chip.active{border-color:var(--green);background:var(--green);color:white;}
+    .chip-icon{font-size:15px;width:20px;text-align:center;}
+    .sb-div{height:1px;background:var(--border);}
+
+    /* 검색 박스 */
+    .search-wrap{position:relative;}
+    .search-input{width:100%;padding:8px 32px 8px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;font-family:inherit;color:var(--text);outline:none;transition:border-color .15s;}
+    .search-input:focus{border-color:var(--green);}
+    .search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;display:none;}
+    .search-results{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);margin-top:4px;overflow:hidden;display:none;box-shadow:var(--shadow);}
+    .sr-item{padding:9px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:13px;transition:background .1s;}
+    .sr-item:hover{background:var(--green-bg);}
+    .sr-item+.sr-item{border-top:1px solid var(--border);}
+    .sr-name{font-weight:600;flex:1;}
+    .sr-cat{font-size:11px;color:var(--muted);}
+
+    /* 날씨 카드 */
+    .weather-card{background:var(--green-bg);border:1px solid #c6dece;border-radius:var(--radius);padding:12px;font-size:12px;}
+    .weather-loading{font-size:12px;color:var(--muted);}
+    .wc-top{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+    .wc-icon{font-size:26px;}
+    .wc-temp{font-size:18px;font-weight:700;color:var(--text);}
+    .wc-desc{font-size:11px;color:var(--sub);margin-top:1px;}
+    .wc-rec{font-size:11px;color:var(--green);font-weight:600;line-height:1.5;padding-top:8px;border-top:1px solid #c6dece;margin-top:2px;}
+    .wc-apply{width:100%;margin-top:8px;padding:7px;background:var(--green);color:white;border:none;border-radius:var(--radius);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+    .wc-apply:hover{background:var(--green2);}
+
+    /* 즐겨찾기 */
+    .fav-list{display:flex;flex-direction:column;gap:5px;max-height:160px;overflow-y:auto;}
+    .fav-item{display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--bg);border-radius:6px;font-size:12px;cursor:pointer;transition:background .1s;}
+    .fav-item:hover{background:var(--green-bg);}
+    .fav-name{flex:1;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .fav-del{background:none;border:none;cursor:pointer;color:var(--muted);font-size:12px;padding:0 2px;flex-shrink:0;}
+    .fav-empty{font-size:12px;color:var(--muted);}
+
+    .search-btn{width:100%;padding:11px;background:var(--green);color:white;border:none;border-radius:var(--radius);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s;}
+    .search-btn:hover{background:var(--green2);}
+
+    /* 메인 */
+    .main{flex:1;padding:28px 36px;overflow-y:auto;min-width:0;}
+
+    /* 탭 네비 (페이지 전환) */
+    .page{display:none;} .page.active{display:block;}
+
+    /* 결과 메타 */
+    .result-meta{display:flex;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+    .result-tag{font-size:12px;color:var(--green);background:var(--green-bg);border:1px solid #c6dece;padding:3px 10px;border-radius:20px;font-weight:500;}
+    .result-count{font-size:12px;color:var(--muted);margin-left:auto;}
+
+    /* 날씨 배너 */
+    .weather-banner{display:flex;align-items:center;gap:14px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:20px;}
+    .wb-icon{font-size:26px;flex-shrink:0;}
+    .wb-info{flex:1;}
+    .wb-main{font-size:13px;font-weight:700;}
+    .wb-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+    .wb-tag{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
+    .wb-tag.outdoor{background:#dcfce7;color:#166534;}
+    .wb-tag.indoor{background:#dbeafe;color:#1e40af;}
+    .wb-tag.cool{background:#f3e8ff;color:#6b21a8;}
+    .wb-tag.hot{background:#fef3c7;color:#92400e;}
+
+    /* 섹션 */
+    .section{margin-bottom:36px;}
+    .section-header{display:flex;align-items:baseline;gap:8px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+    .section-header h2{font-size:15px;font-weight:700;}
+    .section-header p{font-size:12px;color:var(--muted);}
+    .section-header-right{margin-left:auto;display:flex;gap:8px;}
+
+    /* Top3 */
+    .top3-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+    .top3-card{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:all .2s;position:relative;}
+    .top3-card:hover{border-color:var(--green2);box-shadow:var(--shadow);transform:translateY(-2px);}
+    .top3-thumb{height:130px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+    .top3-thumb.cat-자연{background:linear-gradient(140deg,#0f3d22,#1e6b3c,#4ead6e);}
+    .top3-thumb.cat-문화{background:linear-gradient(140deg,#162044,#1d4ed8,#60a5fa);}
+    .top3-thumb.cat-액티비티{background:linear-gradient(140deg,#4a0d24,#be185d,#f472b6);}
+    .top3-thumb.cat-식음료{background:linear-gradient(140deg,#431407,#c2410c,#fb923c);}
+    .top3-thumb.cat-기타{background:linear-gradient(140deg,#2e1065,#6d28d9,#a78bfa);}
+    .thumb-pattern{position:absolute;inset:0;opacity:.07;background-image:radial-gradient(circle at 20% 80%,white 1px,transparent 1px),radial-gradient(circle at 80% 20%,white 1px,transparent 1px);background-size:24px 24px,32px 32px;}
+    .thumb-emoji{font-size:50px;position:relative;z-index:1;filter:drop-shadow(0 2px 8px rgba(0,0,0,.2));}
+    .rank-pill{position:absolute;top:10px;left:10px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;z-index:2;}
+    .rank-1 .rank-pill{background:#fbbf24;color:#78350f;}
+    .rank-2 .rank-pill{background:#e2e8f0;color:#475569;}
+    .rank-3 .rank-pill{background:#fed7aa;color:#92400e;}
+    .course-hint{position:absolute;bottom:8px;right:10px;font-size:10px;color:rgba(255,255,255,.7);z-index:2;}
+    .fav-btn{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.2);border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:13px;z-index:2;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+    .fav-btn:hover{background:rgba(255,255,255,.4);}
+    .fav-btn.saved{background:rgba(255,255,255,.9);}
+    .top3-body{padding:12px 14px;}
+    .top3-name{font-size:14px;font-weight:700;margin-bottom:5px;}
+    .top3-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:7px;}
+    .tag{font-size:11px;padding:2px 7px;border-radius:4px;font-weight:500;}
+    .tag-자연{background:#dcfce7;color:#166534;}
+    .tag-문화{background:#dbeafe;color:#1e40af;}
+    .tag-액티비티{background:#fce7f3;color:#9d174d;}
+    .tag-식음료{background:#fef3c7;color:#92400e;}
+    .tag-기타{background:#f3e8ff;color:#6b21a8;}
+    .tag-loc{background:#f1f5f9;color:#475569;}
+    .top3-desc{font-size:12px;color:var(--sub);line-height:1.6;}
+
+    /* 관광지 테이블 */
+    .place-table{width:100%;border-collapse:collapse;}
+    .place-table thead th{font-size:11px;font-weight:600;color:var(--muted);text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);background:#fafbfa;letter-spacing:.3px;}
+    .place-table tbody tr{border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
+    .place-table tbody tr:hover{background:var(--green-bg);}
+    .place-table tbody tr.expanded{background:var(--green-bg);}
+    .place-table td{padding:10px 12px;font-size:13px;vertical-align:middle;}
+    .td-rank{width:36px;font-size:12px;font-weight:700;color:var(--muted);text-align:center;}
+    .td-icon-wrap{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;}
+    .icon-자연{background:#dcfce7;} .icon-문화{background:#dbeafe;} .icon-액티비티{background:#fce7f3;} .icon-식음료{background:#fef3c7;} .icon-기타{background:#f3e8ff;}
+    .td-name{font-weight:600;color:var(--text);}
+    .td-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+    .td-fav{width:32px;text-align:center;}
+    .row-fav-btn{background:none;border:none;cursor:pointer;font-size:15px;opacity:.4;transition:opacity .15s;}
+    .row-fav-btn:hover,.row-fav-btn.saved{opacity:1;}
+    .td-expand{width:28px;text-align:center;color:var(--muted);font-size:12px;transition:transform .2s;}
+    .expanded .td-expand{transform:rotate(180deg);}
+    .expand-row td{padding:0;}
+    .expand-content{padding:0 16px 0 16px;font-size:12px;color:var(--sub);line-height:1.7;background:var(--green-bg);border-bottom:1px solid #dceee5;max-height:0;overflow:hidden;transition:max-height .4s,padding .3s;}
+    .expand-content.open{max-height:200px;padding:12px 16px 14px 16px;}
+
+    /* 차트 */
+    .charts-row{display:grid;grid-template-columns:1fr 2fr;gap:14px;}
+    .chart-box{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:18px;}
+    .chart-box-title{font-size:13px;font-weight:600;margin-bottom:14px;}
+
+    /* 월별 차트 페이지 */
+    .monthly-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;}
+    .monthly-intro{font-size:13px;color:var(--sub);line-height:1.7;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:20px;}
+
+    /* 일정 페이지 */
+    .itinerary-empty{text-align:center;padding:60px 24px;color:var(--muted);}
+    .itinerary-empty .ei-icon{font-size:40px;margin-bottom:12px;opacity:.4;}
+    .itinerary-empty p{font-size:13px;}
+    .itinerary-list{display:flex;flex-direction:column;gap:16px;}
+    .itin-card{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+    .itin-head{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);}
+    .itin-icon{font-size:22px;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;}
+    .itin-name{font-size:15px;font-weight:700;flex:1;}
+    .itin-type{font-size:11px;color:var(--muted);}
+    .itin-del{background:none;border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:12px;cursor:pointer;color:var(--sub);font-family:inherit;}
+    .itin-del:hover{border-color:#dc2626;color:#dc2626;}
+    .itin-steps{padding:14px 16px;}
+    .itin-step{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid #f3f3f3;font-size:12px;}
+    .itin-step:last-child{border-bottom:none;}
+    .itin-step-time{font-size:11px;font-weight:700;color:var(--green);width:44px;flex-shrink:0;}
+    .itin-step-name{font-weight:600;color:var(--text);}
+    .itin-step-tip{color:var(--sub);margin-top:2px;}
+    .itin-actions{padding:0 16px 14px;display:flex;gap:8px;}
+    .itin-btn{flex:1;padding:8px;border-radius:var(--radius);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;}
+    .itin-btn-print{background:var(--green-bg);color:var(--green);border:1px solid #c6dece;}
+    .itin-btn-print:hover{background:var(--green);color:white;}
+    .itin-btn-del2{background:none;color:#dc2626;border:1px solid #fecaca;}
+    .itin-btn-del2:hover{background:#fef2f2;}
+    .print-hint{font-size:11px;color:var(--muted);text-align:center;margin-top:10px;}
+
+    /* 모달 */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .2s;}
+    .modal-backdrop.open{opacity:1;pointer-events:all;}
+    .modal{background:white;border-radius:12px;width:100%;max-width:560px;max-height:82vh;overflow:hidden;display:flex;flex-direction:column;transform:translateY(16px);transition:transform .2s;box-shadow:0 20px 60px rgba(0,0,0,.18);}
+    .modal-backdrop.open .modal{transform:translateY(0);}
+    .modal-top{padding:22px 22px 0;}
+    .modal-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+    .modal-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+    .modal-icon.cat-자연{background:linear-gradient(135deg,#0f3d22,#4ead6e);}
+    .modal-icon.cat-문화{background:linear-gradient(135deg,#162044,#60a5fa);}
+    .modal-icon.cat-액티비티{background:linear-gradient(135deg,#4a0d24,#f472b6);}
+    .modal-icon.cat-식음료{background:linear-gradient(135deg,#431407,#fb923c);}
+    .modal-icon.cat-기타{background:linear-gradient(135deg,#2e1065,#a78bfa);}
+    .modal-title{font-size:17px;font-weight:700;color:var(--text);}
+    .modal-summary{font-size:12px;color:var(--sub);margin-top:2px;}
+    .modal-close{margin-left:auto;width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:none;cursor:pointer;font-size:14px;color:var(--sub);display:flex;align-items:center;justify-content:center;}
+    .modal-close:hover{background:#f5f5f5;}
+    .modal-tabs{display:flex;border-bottom:1px solid var(--border);}
+    .modal-tab{padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit;transition:all .15s;}
+    .modal-tab.active{color:var(--green);border-bottom-color:var(--green);}
+    .modal-body{padding:18px 22px;overflow-y:auto;flex:1;}
+    .modal-save-btn{display:block;width:100%;margin-top:14px;padding:10px;background:var(--green-bg);color:var(--green);border:1px solid #c6dece;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;}
+    .modal-save-btn:hover{background:var(--green);color:white;}
+    .course-item{display:flex;gap:14px;padding:10px 0;border-bottom:1px solid #f3f3f3;}
+    .course-item:last-child{border-bottom:none;}
+    .course-left{width:48px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;}
+    .course-time{font-size:11px;font-weight:700;color:var(--green);}
+    .c-dot{width:8px;height:8px;border-radius:50%;background:var(--green);margin:4px 0;border:2px solid white;box-shadow:0 0 0 1.5px var(--green);}
+    .c-line{width:1px;flex:1;min-height:18px;background:#d4eadc;}
+    .course-item:last-child .c-line{display:none;}
+    .course-item.day2 .c-dot{background:#c2410c;box-shadow:0 0 0 1.5px #c2410c;}
+    .course-item.day2 .course-time{color:#c2410c;}
+    .course-right{flex:1;}
+    .course-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;}
+    .course-tip{font-size:12px;color:var(--sub);line-height:1.55;padding:4px 8px;background:#f7fbf8;border-radius:6px;border-left:2px solid #b6dfc6;}
+    .day-label{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;margin:8px 0 4px;}
+    .day-label.d1{background:var(--green-bg);color:var(--green);}
+    .day-label.d2{background:#fff7ed;color:#c2410c;}
+
+    /* 빈 상태 */
+    .empty{text-align:center;padding:48px 24px;color:var(--muted);}
+    .empty-icon{font-size:36px;margin-bottom:10px;opacity:.5;}
+    .empty-text{font-size:13px;}
+
+
+    /* ── 공유 모달 ── */
+    .share-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .2s;}
+    .share-modal-backdrop.open{opacity:1;pointer-events:all;}
+    .share-modal{background:white;border-radius:12px;width:100%;max-width:420px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.2);transform:translateY(16px);transition:transform .2s;}
+    .share-modal-backdrop.open .share-modal{transform:translateY(0);}
+    .share-modal-title{font-size:16px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+    .share-close{background:none;border:none;cursor:pointer;font-size:16px;color:var(--muted);}
+    .share-preview{background:var(--green-bg);border:1px solid #c6dece;border-radius:var(--radius);padding:16px;margin-bottom:16px;font-size:13px;color:var(--sub);line-height:1.7;}
+    .share-preview-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;}
+    .share-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+    .share-btn{padding:10px;border-radius:var(--radius);border:1px solid var(--border);background:white;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px;}
+    .share-btn:hover{border-color:var(--green);background:var(--green-bg);color:var(--green);}
+    .share-btn.primary{background:var(--green);color:white;border-color:var(--green);}
+    .share-btn.primary:hover{background:var(--green2);}
+    .share-url-row{display:flex;gap:6px;margin-top:10px;}
+    .share-url-input{flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:12px;font-family:inherit;color:var(--sub);outline:none;}
+    .share-url-copy{padding:8px 14px;background:var(--green);color:white;border:none;border-radius:var(--radius);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;}
+    .share-url-copy:hover{background:var(--green2);}
+
+    /* ── 알림 토스트 ── */
+    .toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
+    .toast{background:#1a2420;color:white;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;opacity:0;transform:translateY(12px);transition:all .3s;pointer-events:none;max-width:300px;box-shadow:0 4px 16px rgba(0,0,0,.2);}
+    .toast.show{opacity:1;transform:translateY(0);}
+    .toast.success::before{content:'✅ ';} .toast.error::before{content:'⚠️ ';} .toast.info::before{content:'ℹ️ ';}
+
+    /* ── 알림 설정 ── */
+    .notif-section{margin-top:4px;}
+    .notif-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);}
+    .notif-row:last-child{border-bottom:none;}
+    .notif-label{font-size:12px;color:var(--text);font-weight:500;}
+    .notif-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+    .toggle{position:relative;width:36px;height:20px;flex-shrink:0;}
+    .toggle input{opacity:0;width:0;height:0;}
+    .toggle-slider{position:absolute;inset:0;background:#ddd;border-radius:20px;cursor:pointer;transition:.3s;}
+    .toggle-slider::before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:white;border-radius:50%;transition:.3s;}
+    .toggle input:checked+.toggle-slider{background:var(--green);}
+    .toggle input:checked+.toggle-slider::before{transform:translateX(16px);}
+
+    /* ── 관광지 상세 정보 ── */
+    .detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:10px;}
+    .detail-chip{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;font-size:12px;}
+    .detail-chip-label{color:var(--muted);font-size:10px;margin-bottom:2px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+    .detail-chip-value{color:var(--text);font-weight:600;}
+
+    /* 일정 공유 버튼 */
+    .itin-btn-share{background:none;color:#3b82f6;border:1px solid #bfdbfe;}
+    .itin-btn-share:hover{background:#eff6ff;}
+
+    /* 인쇄 */
+    @media print{
+      /* 일정 페이지만 출력 */
+      .gnb,.sidebar,.modal-backdrop,
+      .share-modal-backdrop,.toast-wrap,
+      #page-recommend,#page-monthly,
+      .itin-del,.itin-btn-del2,.itin-btn-print,.itin-btn-share,
+      .section-header-right { display:none!important; }
+      .layout { display:block; }
+      .main { padding:8px 16px; }
+      #page-itinerary { display:block!important; }
+      body { background:white; }
+      .itin-card { border:1px solid #ddd!important; margin-bottom:16px; page-break-inside:avoid; }
+      .itin-actions { display:none!important; }
+      .section-header p { display:none; }
+      .section-header h2::before { content:'🗺️ 오시랑께  |  전라남도 여행 일정   '; color:#1e6b3c; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- GNB -->
+<nav class="gnb">
+  <div class="gnb-logo">오시랑께<span> | 전라남도 여행</span></div>
+  <div class="gnb-nav">
+    <a class="active" onclick="showPage('recommend',this)">관광지 추천</a>
+    <a onclick="showPage('monthly',this)">월별 분석</a>
+    <a onclick="showPage('itinerary',this)">내 여행 일정 <span id="itin-count" style="display:none;background:var(--green);color:white;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:3px;"></span></a>
+  </div>
+  <div class="gnb-right">
+    <div class="gnb-weather">☀️ <span id="weather-text">전남</span></div>
+    <button class="gnb-btn">로그인</button>
+  </div>
+</nav>
+
+<!-- 코스 모달 -->
+<div class="modal-backdrop" id="modal-backdrop" onclick="handleBackdropClick(event)">
+  <div class="modal">
+    <div class="modal-top">
+      <div class="modal-head">
+        <div class="modal-icon" id="modal-icon">🌿</div>
+        <div>
+          <div class="modal-title" id="modal-title"></div>
+          <div class="modal-summary" id="modal-summary"></div>
+        </div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-tabs">
+        <button class="modal-tab active" id="tab-day" onclick="switchTab('daytrip')">당일치기</button>
+        <button class="modal-tab" id="tab-night" onclick="switchTab('overnight')">1박 2일</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div id="course-list"></div>
+      <button class="modal-save-btn" id="modal-save-btn" onclick="saveItinerary()">🗓️ 내 일정에 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 레이아웃 -->
+
+<!-- 공유 모달 -->
+<div class="share-modal-backdrop" id="share-backdrop" onclick="if(event.target===this)closeShareModal()">
+  <div class="share-modal">
+    <div class="share-modal-title">
+      일정 공유하기
+      <button class="share-close" onclick="closeShareModal()">✕</button>
+    </div>
+    <div class="share-preview" id="share-preview"></div>
+    <div class="share-btns">
+      <button class="share-btn primary" onclick="copyShareUrl()">🔗 링크 복사</button>
+      <button class="share-btn" onclick="shareKakao()">💬 카카오톡 공유</button>
+      <button class="share-btn" onclick="shareText()">📋 텍스트 복사</button>
+      <button class="share-btn" onclick="window.print()">🖨️ 인쇄</button>
+    </div>
+    <div class="share-url-row">
+      <input class="share-url-input" id="share-url-input" readonly/>
+      <button class="share-url-copy" onclick="copyShareUrl()">복사</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="toast-wrap" id="toast-wrap"></div>
+<div class="layout">
+
+  <!-- 사이드바 -->
+  <aside class="sidebar">
+    <!-- 검색 -->
+    <div>
+      <div class="sb-title">관광지 검색</div>
+      <div class="search-wrap">
+        <input class="search-input" id="search-input" placeholder="관광지 이름 검색..." oninput="onSearchInput(this)" autocomplete="off"/>
+        <button class="search-clear" id="search-clear" onclick="clearSearch()">✕</button>
+      </div>
+      <div class="search-results" id="search-results"></div>
+    </div>
+    <div class="sb-div"></div>
+
+    <!-- 날씨 -->
+    <div>
+      <div class="sb-title">전남 날씨</div>
+      <div id="weather-area"><div class="weather-loading">날씨 불러오는 중...</div></div>
+    </div>
+    <div class="sb-div"></div>
+
+    <!-- 테마 -->
+    <div>
+      <div class="sb-title">여행 테마</div>
+      <div class="filter-chips" id="theme-chips">
+        <button class="filter-chip" data-value="휴식/힐링" onclick="toggleChip(this,'theme')"><span class="chip-icon">🌿</span>휴식 / 힐링</button>
+        <button class="filter-chip" data-value="맛집탐방" onclick="toggleChip(this,'theme')"><span class="chip-icon">🍽️</span>맛집 탐방</button>
+        <button class="filter-chip" data-value="문화/예술" onclick="toggleChip(this,'theme')"><span class="chip-icon">🏛️</span>문화 / 예술</button>
+        <button class="filter-chip" data-value="액티비티" onclick="toggleChip(this,'theme')"><span class="chip-icon">⛰️</span>액티비티</button>
+      </div>
+    </div>
+    <div class="sb-div"></div>
+
+    <!-- 동행 -->
+    <div>
+      <div class="sb-title">동행</div>
+      <div class="filter-chips" id="companion-chips">
+        <button class="filter-chip" data-value="가족" onclick="toggleChip(this,'companion')"><span class="chip-icon">👨‍👩‍👧</span>가족</button>
+        <button class="filter-chip" data-value="친구" onclick="toggleChip(this,'companion')"><span class="chip-icon">👫</span>친구</button>
+        <button class="filter-chip" data-value="커플" onclick="toggleChip(this,'companion')"><span class="chip-icon">❤️</span>커플</button>
+        <button class="filter-chip" data-value="혼자" onclick="toggleChip(this,'companion')"><span class="chip-icon">🧍</span>혼자</button>
+      </div>
+    </div>
+    <div class="sb-div"></div>
+
+    <!-- 즐겨찾기 -->
+    <div>
+      <div class="sb-title">즐겨찾기</div>
+      <div id="fav-list-sidebar"></div>
+    </div>
+    <div class="sb-div"></div>
+    <!-- 알림 설정 -->
+    <div>
+      <div class="sb-title">알림 설정</div>
+      <div class="notif-section">
+        <div class="notif-row">
+          <div><div class="notif-label">날씨 변화 알림</div><div class="notif-sub">즐겨찾기 지역 날씨</div></div>
+          <label class="toggle"><input type="checkbox" id="notif-weather" onchange="toggleNotif('weather',this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="notif-row">
+          <div><div class="notif-label">여행 시즌 알림</div><div class="notif-sub">벚꽃·단풍 시즌 안내</div></div>
+          <label class="toggle"><input type="checkbox" id="notif-season" onchange="toggleNotif('season',this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+    </div>
+
+    <button class="search-btn" onclick="search()">추천 결과 보기</button>
+  </aside>
+
+  <!-- 메인 -->
+  <main class="main">
+
+    <!-- 관광지 추천 페이지 -->
+    <div class="page active" id="page-recommend">
+      <div class="weather-banner" id="weather-banner" style="display:none">
+        <div class="wb-icon" id="wb-icon">☀️</div>
+        <div class="wb-info">
+          <div class="wb-main" id="wb-main"></div>
+          <div class="wb-sub" id="wb-sub"></div>
+        </div>
+        <span class="wb-tag" id="wb-tag"></span>
+      </div>
+
+      <div class="result-meta" id="result-meta" style="display:none">
+        <span id="badge-theme" class="result-tag"></span>
+        <span id="badge-companion" class="result-tag"></span>
+        <span class="result-count" id="result-count"></span>
+      </div>
+
+      <div class="section">
+        <div class="section-header"><h2>Top 3 추천</h2><p>카드 클릭 → 추천 코스 확인 / ★ 클릭 → 즐겨찾기</p></div>
+        <div class="top3-grid" id="top3-result">
+          <div style="grid-column:1/-1"><div class="empty"><div class="empty-icon">🗺️</div><div class="empty-text">조건을 선택하고 추천 결과를 확인하세요</div></div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header"><h2>관광지 목록</h2><p>행 클릭 → 상세 설명</p></div>
+        <table class="place-table">
+          <thead><tr><th class="td-rank">#</th><th style="width:42px"></th><th>관광지명</th><th style="width:90px">분류</th><th class="td-fav"></th><th style="width:28px"></th></tr></thead>
+          <tbody id="place-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="section">
+        <div class="section-header"><h2>데이터 분석</h2><p>선택 조건에 따라 실시간 업데이트</p></div>
+        <div class="charts-row">
+          <div class="chart-box"><div class="chart-box-title">분류별 분포</div><canvas id="chart-category"></canvas></div>
+          <div class="chart-box"><div class="chart-box-title">지역별 관광지 수</div><canvas id="chart-region"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 월별 분석 페이지 -->
+    <div class="page" id="page-monthly">
+      <div class="section-header" style="margin-bottom:20px"><h2>월별 방문자 추이 분석</h2><p>전라남도 관광지 계절별 인기도</p></div>
+      <div class="monthly-intro">
+        전라남도는 계절마다 매력이 다릅니다. <strong>봄(3~5월)</strong>은 벚꽃과 매화로 담양·광양이 인기를 끌고,
+        <strong>여름(6~8월)</strong>은 해수욕장과 수산시장을 찾는 방문객이 급증합니다.
+        <strong>가을(9~11월)</strong>은 순천만 갈대축제와 단풍으로 절정을 이루며,
+        <strong>겨울(12~2월)</strong>은 향일암 일출과 보성 눈 덮인 녹차밭이 명소로 떠오릅니다.
+      </div>
+      <div class="monthly-grid">
+        <div class="chart-box"><div class="chart-box-title">월별 전체 방문자 추이</div><canvas id="chart-monthly-total"></canvas></div>
+        <div class="chart-box"><div class="chart-box-title">계절별 인기 지역 TOP 5</div><canvas id="chart-seasonal-region"></canvas></div>
+        <div class="chart-box"><div class="chart-box-title">월별 테마별 인기도</div><canvas id="chart-monthly-theme"></canvas></div>
+        <div class="chart-box"><div class="chart-box-title">계절별 추천 관광지</div><canvas id="chart-seasonal-place"></canvas></div>
+      </div>
+    </div>
+
+    <!-- 내 일정 페이지 -->
+    <div class="page" id="page-itinerary">
+      <div class="section-header" style="margin-bottom:20px">
+        <h2>내 여행 일정</h2>
+        <p>저장한 코스를 확인하고 출력할 수 있습니다</p>
+        <div class="section-header-right">
+          <button class="itin-btn itin-btn-print" style="flex:none;padding:6px 14px" onclick="window.print()">🖨️ 전체 인쇄</button>
+        </div>
+      </div>
+      <div id="itinerary-content"></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  const selected = { theme:null, companion:null };
+  const CAT_EMOJI = {'자연':'🌿','문화':'🏛️','액티비티':'🎯','식음료':'🍽️','기타':'✨'};
+  let weatherData = null;
+  let currentModalPlace = null;
+  let currentModalType = 'daytrip';
+
+  // ── 페이지 전환 ─────────────────────────────────────────────────
+  function showPage(id, el) {
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('page-'+id).classList.add('active');
+    document.querySelectorAll('.gnb-nav a').forEach(a=>a.classList.remove('active'));
+    if (el) el.classList.add('active');
+    if (id==='monthly') initMonthlyCharts();
+    if (id==='itinerary') renderItinerary();
+  }
+
+  // ── 검색 ────────────────────────────────────────────────────────
+  // 지역명 → 관광지 매핑
+  const REGION_SEARCH = {
+    '여수':['오동도','여수해상케이블카','향일암','아쿠아플라넷여수','돌산공원','여수수산시장','여수수산물특화시장','여수돌산갓김치마을','여수게장백반거리','영란횟집','유월드루지테마파크'],
+    '순천':['순천만국가정원','순천만습지','낙안읍성민속마을','순천아랫장','순천남도음식거리','조례호수공원','청미래'],
+    '담양':['죽녹원','메타세쿼이아가로수길','담양관방제림','메타프로방스','담양떡갈비거리','소쇄원'],
+    '목포':['동부시장','한일관','목포세발낙지골목'],
+    '보성':['보성녹차밭','보성꼬막정식거리','독천식당'],
+    '구례':['화엄사'],
+    '해남':['땅끝전망대','해남미황사두부마을'],
+    '광양':['광양숯불구이거리','섬진강기차마을'],
+    '완도':['신지명사십리해수욕장'],
+    '함평':['함평엑스포공원'],
+    '진도':['운림산방'],
+    '벌교':['대원식당','벌교꼬막거리'],
+    '강진':['강진한정식거리'],
+  };
+
+  function getRegionOfPlace(name) {
+    return Object.entries(REGION_SEARCH).find(([,v])=>v.includes(name))?.[0] || null;
+  }
+
+  function onSearchInput(el) {
+    const q = el.value.trim();
+    const clear = document.getElementById('search-clear');
+    const box = document.getElementById('search-results');
+    clear.style.display = q ? 'block' : 'none';
+    if (!q) { box.style.display='none'; return; }
+
+    // 이름 검색
+    const nameHits = ALL_PLACES.filter(p => p.name.includes(q));
+    // 지역명 검색
+    const regionNames = REGION_SEARCH[q] || Object.entries(REGION_SEARCH)
+      .filter(([r]) => r.includes(q)).flatMap(([,names]) => names);
+    const regionHits = regionNames.map(name=>ALL_PLACES.find(p=>p.name===name)).filter(Boolean);
+    // 음식 종류 검색
+    const foodHits = ALL_PLACES.filter(p => p.food && p.food.includes(q));
+
+    // 중복 제거
+    const seen = new Set();
+    const hits = [...nameHits, ...regionHits, ...foodHits]
+      .filter(p => { if(seen.has(p.name)) return false; seen.add(p.name); return true; })
+      .slice(0, 8);
+
+    if (!hits.length) {
+      box.innerHTML='<div class="sr-item" style="color:var(--muted);cursor:default;font-size:12px">검색 결과가 없어요</div>';
+      box.style.display='block'; return;
+    }
+    box.innerHTML = hits.map(p=>{
+      const lbl=CAT_LABEL[p.cat]||'기타';
+      const region = getRegionOfPlace(p.name);
+      const sub = (region && !p.name.includes(q)) ? `📍 ${region} · ${p.cat}` : p.cat;
+      return `<div class="sr-item" onclick="selectSearchResult('${p.name.replace(/'/g,"\\'")}')">
+        <span>${CAT_EMOJI[lbl]||'✨'}</span>
+        <div style="flex:1;min-width:0">
+          <div class="sr-name">${p.name}</div>
+          <div class="sr-cat">${sub}</div>
+        </div>
+      </div>`;
+    }).join('');
+    box.style.display='block';
+  }
+  function clearSearch() {
+    document.getElementById('search-input').value='';
+    document.getElementById('search-clear').style.display='none';
+    document.getElementById('search-results').style.display='none';
+  }
+  function selectSearchResult(name) {
+    clearSearch();
+    const p = ALL_PLACES.find(x=>x.name===name);
+    if (!p) return;
+    const lbl = CAT_LABEL[p.cat]||'기타';
+    openCourseModal(p.name, lbl, CAT_EMOJI[lbl]||'✨');
+  }
+
+  // ── 날씨 ────────────────────────────────────────────────────────
+  const OW_KEY = 'da722e75de8b3fe1362b1a87c406b638';
+  const WI = {'01d':'☀️','01n':'🌙','02d':'⛅','02n':'⛅','03d':'☁️','03n':'☁️','04d':'☁️','04n':'☁️','09d':'🌧️','09n':'🌧️','10d':'🌦️','10n':'🌦️','11d':'⛈️','11n':'⛈️','13d':'❄️','13n':'❄️','50d':'🌫️','50n':'🌫️'};
+  function getWeatherRec(id, temp) {
+    if (temp>=28) return {type:'hot',tag:'해변·수상 추천',tagCls:'hot',theme:'휴식/힐링',sub:'더운 날씨! 해수욕장과 수상 명소를 추천해요'};
+    if (temp<=5)  return {type:'cold',tag:'실내 힐링 추천',tagCls:'cool',theme:'문화/예술',sub:'쌀쌀한 날씨, 따뜻한 실내 관광지를 추천해요'};
+    if (id>=200&&id<700) return {type:'rain',tag:'실내 관광 추천',tagCls:'indoor',theme:'문화/예술',sub:'비 오는 날엔 실내 문화 관광지나 맛집이 좋아요'};
+    return {type:'clear',tag:'야외 활동 추천',tagCls:'outdoor',theme:'휴식/힐링',sub:'날씨가 좋아요! 야외 자연 명소를 즐겨보세요'};
+  }
+  async function loadWeather() {
+    try {
+      const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Yeosu,KR&appid=${OW_KEY}&units=metric&lang=kr`);
+      const d = await res.json();
+      if (d.cod!==200) throw new Error();
+      const temp=Math.round(d.main.temp), feels=Math.round(d.main.feels_like);
+      const desc=d.weather[0].description, icon=WI[d.weather[0].icon]||'🌤️';
+      const rec=getWeatherRec(d.weather[0].id,temp);
+      weatherData={temp,feels,desc,icon,rec};
+      document.getElementById('weather-text').textContent=`${icon} 전남 ${temp}°C`;
+      document.getElementById('weather-area').innerHTML=`
+        <div class="weather-card">
+          <div class="wc-top"><div class="wc-icon">${icon}</div><div><div class="wc-temp">${temp}°C</div><div class="wc-desc">${desc} · 체감 ${feels}°C</div></div></div>
+          <div class="wc-rec">💡 ${rec.sub}</div>
+          <button class="wc-apply" onclick="applyWeatherFilter()">날씨 맞춤 적용</button>
+        </div>`;
+      const banner=document.getElementById('weather-banner');
+      banner.style.display='flex';
+      document.getElementById('wb-icon').textContent=icon;
+      document.getElementById('wb-main').textContent=`${temp}°C · ${desc} (체감 ${feels}°C) — 전남`;
+      document.getElementById('wb-sub').textContent=rec.sub;
+      const tag=document.getElementById('wb-tag');
+      tag.textContent=rec.tag; tag.className=`wb-tag ${rec.tagCls}`;
+    } catch(e) {
+      document.getElementById('weather-area').innerHTML='<div class="weather-loading">날씨 정보를 불러올 수 없습니다</div>';
+    }
+  }
+  function applyWeatherFilter() {
+    if (!weatherData) return;
+    const theme=weatherData.rec.theme;
+    document.getElementById('theme-chips').querySelectorAll('.filter-chip').forEach(c=>{
+      if(c.dataset.value===theme){c.classList.add('active');selected.theme=theme;}
+      else c.classList.remove('active');
+    });
+    search();
+  }
+
+  // ── 즐겨찾기 ────────────────────────────────────────────────────
+  let favorites = JSON.parse(localStorage.getItem('osirankke_favs')||'[]');
+  function saveFavs() { localStorage.setItem('osirankke_favs', JSON.stringify(favorites)); }
+  function toggleFav(name) {
+    if (favorites.includes(name)) favorites=favorites.filter(f=>f!==name);
+    else favorites.push(name);
+    saveFavs(); renderFavSidebar();
+    // 버튼 갱신
+    document.querySelectorAll(`[data-fav="${name}"]`).forEach(b=>{
+      b.textContent=favorites.includes(name)?'★':'☆';
+      b.classList.toggle('saved', favorites.includes(name));
+    });
+  }
+  function renderFavSidebar() {
+    const el=document.getElementById('fav-list-sidebar');
+    if (!favorites.length) { el.innerHTML='<div class="fav-empty">저장된 즐겨찾기가 없어요</div>'; return; }
+    el.innerHTML=`<div class="fav-list">${favorites.map(name=>{
+      const p=ALL_PLACES.find(x=>x.name===name);
+      const lbl=p?CAT_LABEL[p.cat]||'기타':'기타';
+      return `<div class="fav-item" onclick="selectSearchResult('${name.replace(/'/g,"\\'")}')">
+        <span>${CAT_EMOJI[lbl]||'✨'}</span>
+        <span class="fav-name">${name}</span>
+        <button class="fav-del" onclick="event.stopPropagation();toggleFav('${name.replace(/'/g,"\\'")}')">✕</button>
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  // ── 칩 토글 ─────────────────────────────────────────────────────
+  function toggleChip(el, group) {
+    const id=group==='theme'?'theme-chips':'companion-chips';
+    document.getElementById(id).querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+    if(selected[group]===el.dataset.value){selected[group]=null;}
+    else{el.classList.add('active');selected[group]=el.dataset.value;}
+  }
+
+  // ── 점수 ────────────────────────────────────────────────────────
+  function score(p) {
+    let s=200-p.rank;
+    if(selected.companion&&COMPANION_PREF[selected.companion]?.includes(p.cat))s+=15;
+    if(p.cat==='맛집'&&selected.companion&&p.companions?.includes(selected.companion))s+=10;
+    return s;
+  }
+
+  // ── Top3 렌더 ───────────────────────────────────────────────────
+  function renderTop3(places) {
+    const top3=places.slice(0,3);
+    if(!top3.length){document.getElementById('top3-result').innerHTML='<div style="grid-column:1/-1"><div class="empty"><div class="empty-icon">😅</div><div class="empty-text">해당 조건에 맞는 장소가 없습니다</div></div></div>';return;}
+    const rl=['1위','2위','3위'],rc=['rank-1','rank-2','rank-3'];
+    document.getElementById('top3-result').innerHTML=top3.map((p,i)=>{
+      const lbl=CAT_LABEL[p.cat]||'기타', emoji=CAT_EMOJI[lbl]||'✨';
+      const isFav=favorites.includes(p.name);
+      return `<div class="top3-card ${rc[i]}" onclick="openCourseModal('${p.name.replace(/'/g,"\\'")}','${lbl}','${emoji}')">
+        <div class="top3-thumb cat-${lbl}">
+          <div class="thumb-pattern"></div>
+          <div class="thumb-emoji">${emoji}</div>
+          <div class="rank-pill">${rl[i]}</div>
+          <div class="course-hint">코스 보기 →</div>
+          <button class="fav-btn ${isFav?'saved':''}" data-fav="${p.name}" onclick="event.stopPropagation();toggleFav('${p.name.replace(/'/g,"\\'")}')">
+            ${isFav?'★':'☆'}
+          </button>
+        </div>
+        <div class="top3-body">
+          <div class="top3-name">${p.name}</div>
+          <div class="top3-tags">
+            <span class="tag tag-${lbl}">${p.cat}</span>
+            ${p.location?`<span class="tag tag-loc">📍 ${p.location}</span>`:''}
+          </div>
+          <div class="top3-desc">${DESCS[p.name]||'전라남도의 대표 관광 명소입니다.'}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── 테이블 렌더 ─────────────────────────────────────────────────
+  function renderPlaces(places) {
+    if(!places.length){document.getElementById('place-tbody').innerHTML='<tr><td colspan="6"><div class="empty"><div class="empty-text">해당 조건의 장소가 없습니다</div></div></td></tr>';return;}
+    document.getElementById('place-tbody').innerHTML=places.slice(0,15).map((p,i)=>{
+      const lbl=CAT_LABEL[p.cat]||'기타',emoji=CAT_EMOJI[lbl]||'✨';
+      const sub=p.food?`${p.location} · ${p.food}`:'';
+      const desc=DESCS[p.name]||'전라남도의 대표 관광 명소입니다.';
+      const id=`row-${i}`, isFav=favorites.includes(p.name);
+      const info = PLACE_INFO[p.name]||{};
+      return `<tr onclick="toggleRow('${id}')" id="${id}">
+        <td class="td-rank">${i+1}</td>
+        <td><div class="td-icon-wrap icon-${lbl}">${emoji}</div></td>
+        <td><div class="td-name">${p.name}</div>${sub?`<div class="td-sub">${sub}</div>`:''}</td>
+        <td><span class="tag tag-${lbl}">${p.cat}</span></td>
+        <td class="td-fav"><button class="row-fav-btn ${isFav?'saved':''}" data-fav="${p.name}" onclick="event.stopPropagation();toggleFav('${p.name.replace(/'/g,"\\'")}')">★</button></td>
+        <td class="td-expand">∨</td>
+      </tr>
+      <tr id="${id}-exp"><td colspan="6"><div class="expand-content" id="${id}-content">
+        ${desc}
+        ${info.hours||info.fee||info.parking?`<div class="detail-grid">
+          ${info.hours?`<div class="detail-chip"><div class="detail-chip-label">운영시간</div><div class="detail-chip-value">${info.hours}</div></div>`:''}
+          ${info.fee?`<div class="detail-chip"><div class="detail-chip-label">입장료</div><div class="detail-chip-value">${info.fee}</div></div>`:''}
+          ${info.parking?`<div class="detail-chip"><div class="detail-chip-label">주차</div><div class="detail-chip-value">${info.parking}</div></div>`:''}
+        </div>`:''}
+      </div></td></tr>`;
+    }).join('');
+  }
+  function toggleRow(id) {
+    const row=document.getElementById(id),content=document.getElementById(`${id}-content`);
+    const isOpen=content.classList.contains('open');
+    document.querySelectorAll('.expand-content.open').forEach(c=>{c.classList.remove('open');c.closest('tr').previousElementSibling.classList.remove('expanded');});
+    if(!isOpen){content.classList.add('open');row.classList.add('expanded');}
+  }
+
+  // ── 차트 ────────────────────────────────────────────────────────
+  const MULTI=['#1e6b3c','#2d8a52','#3da866','#c2410c','#3b82f6','#7c3aed','#db2777','#d97706','#0891b2','#65a30d','#dc2626','#7e22ce'];
+  const REGION_MAP={'여수':['여수','향일암','오동도','돌산','아쿠아플라넷','유월드'],'순천':['순천','낙안'],'목포':['목포','동부시장'],'담양':['담양','죽녹원','메타세쿼이아','메타프로방스'],'보성':['보성','율포'],'진도':['진도','쏠비치'],'해남':['해남','땅끝'],'강진':['강진'],'광양':['광양'],'완도':['완도','신지'],'구례':['구례','화엄사','사성암'],'함평':['함평'],'영광':['영광'],'나주':['나주'],'장성':['장성','백양사'],'고흥':['고흥'],'화순':['화순'],'벌교':['벌교']};
+  function getRegion(name){for(const[r,kws]of Object.entries(REGION_MAP))if(kws.some(k=>name.includes(k)))return r;return null;}
+  let chartCat,chartRegion;
+  function initCharts(){
+    chartCat=new Chart(document.getElementById('chart-category'),{type:'doughnut',data:{labels:[],datasets:[{data:[],backgroundColor:MULTI,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:11,padding:10}}}}});
+    chartRegion=new Chart(document.getElementById('chart-region'),{type:'bar',data:{labels:[],datasets:[{data:[],backgroundColor:[],borderRadius:4,borderSkipped:false}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:'#f0f0f0'},ticks:{stepSize:1,font:{size:11}}}}}});
+    updateCharts(ALL_PLACES);
+  }
+  function updateCharts(places){
+    const cc={};places.forEach(p=>{cc[p.cat]=(cc[p.cat]||0)+1;});
+    const cs=Object.entries(cc).sort((a,b)=>b[1]-a[1]);
+    chartCat.data.labels=cs.map(([k])=>k);chartCat.data.datasets[0].data=cs.map(([,v])=>v);chartCat.data.datasets[0].backgroundColor=MULTI.slice(0,cs.length);chartCat.update();
+    const rc={};places.forEach(p=>{const r=getRegion(p.name);if(r)rc[r]=(rc[r]||0)+1;});
+    const rs=Object.entries(rc).sort((a,b)=>b[1]-a[1]);
+    chartRegion.data.labels=rs.map(([k])=>k);chartRegion.data.datasets[0].data=rs.map(([,v])=>v);chartRegion.data.datasets[0].backgroundColor=rs.map((_,i)=>i===0?'#1e6b3c':i<3?'#2d8a52':i<6?'#5aad78':'#a8d9b8');chartRegion.update();
+  }
+
+  // ── 월별 차트 ───────────────────────────────────────────────────
+  let monthlyChartsInited=false;
+  function initMonthlyCharts(){
+    if(monthlyChartsInited)return;
+    monthlyChartsInited=true;
+    const months=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+    // 월별 전체 방문자 (추정 데이터)
+    new Chart(document.getElementById('chart-monthly-total'),{type:'line',data:{labels:months,datasets:[{label:'방문자 수 (천명)',data:[42,38,85,120,140,110,195,210,175,155,90,55],borderColor:'#1e6b3c',backgroundColor:'rgba(30,107,60,.08)',tension:.4,fill:true,pointBackgroundColor:'#1e6b3c',pointRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#f0f0f0'},ticks:{font:{size:11}}}}}});
+    // 계절별 인기 지역
+    new Chart(document.getElementById('chart-seasonal-region'),{type:'bar',data:{labels:['여수','순천','담양','보성','구례'],datasets:[{label:'봄',data:[85,70,95,60,75],backgroundColor:'#86efac'},{label:'여름',data:[120,80,60,55,50],backgroundColor:'#60a5fa'},{label:'가을',data:[100,110,70,65,90],backgroundColor:'#fbbf24'},{label:'겨울',data:[60,50,40,75,55],backgroundColor:'#c4b5fd'}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:8}}},scales:{x:{grid:{display:false}},y:{grid:{color:'#f0f0f0'}}}}});
+    // 월별 테마별 인기도
+    new Chart(document.getElementById('chart-monthly-theme'),{type:'line',data:{labels:months,datasets:[{label:'자연·힐링',data:[55,50,90,120,135,105,180,200,165,145,80,50],borderColor:'#1e6b3c',tension:.4,fill:false},{label:'문화·예술',data:[60,55,70,85,90,75,80,85,95,100,75,65],borderColor:'#3b82f6',tension:.4,fill:false},{label:'맛집',data:[70,65,80,90,85,90,100,110,95,85,80,75],borderColor:'#c2410c',tension:.4,fill:false},{label:'액티비티',data:[30,28,45,70,85,100,130,145,110,90,50,35],borderColor:'#8b5cf6',tension:.4,fill:false}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:8}}},scales:{x:{grid:{display:false}},y:{grid:{color:'#f0f0f0'}}}}});
+    // 계절별 추천 관광지 (레이더)
+    new Chart(document.getElementById('chart-seasonal-place'),{type:'radar',data:{labels:['순천만국가정원','보성녹차밭','죽녹원','여수해상케이블카','화엄사','오동도'],datasets:[{label:'봄',data:[85,80,90,70,75,80],borderColor:'#86efac',backgroundColor:'rgba(134,239,172,.15)'},{label:'가을',data:[95,70,75,80,85,75],borderColor:'#fbbf24',backgroundColor:'rgba(251,191,36,.15)'}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:8}}},scales:{r:{grid:{color:'#f0f0f0'},pointLabels:{font:{size:10}},ticks:{display:false}}}}});
+  }
+
+  // ── 조회 ────────────────────────────────────────────────────────
+  function search(){
+    const{theme,companion}=selected;
+    const rm=document.getElementById('result-meta'),bt=document.getElementById('badge-theme'),bc=document.getElementById('badge-companion');
+    if(theme||companion){rm.style.display='flex';bt.textContent=theme||'';bt.style.display=theme?'':'none';bc.textContent=companion?`${companion} 여행`:'';bc.style.display=companion?'':'none';}
+    else rm.style.display='none';
+    let filtered=theme?ALL_PLACES.filter(p=>THEME_CATS[theme]?.includes(p.cat)):[...ALL_PLACES];
+    const chartFiltered=companion?filtered.filter(p=>COMPANION_PREF[companion]?.includes(p.cat)):filtered;
+    const sorted=[...filtered].sort((a,b)=>score(b)-score(a));
+    document.getElementById('result-count').textContent=`총 ${sorted.length}개`;
+    renderTop3(sorted);renderPlaces(sorted);
+    updateCharts(chartFiltered.length?chartFiltered:filtered);
+  }
+
+  // ── 코스 모달 ───────────────────────────────────────────────────
+  let currentCourseData=null;
+  function openCourseModal(name,lbl,emoji){
+    const course=getCourse(name);if(!course)return;
+    currentCourseData=course;currentModalPlace={name,lbl,emoji};currentModalType='daytrip';
+    const icon=document.getElementById('modal-icon');icon.className=`modal-icon cat-${lbl}`;icon.textContent=emoji;
+    document.getElementById('modal-title').textContent=name;
+    document.getElementById('modal-summary').textContent=course.summary;
+    switchTab('daytrip');
+    document.getElementById('modal-backdrop').classList.add('open');
+    document.body.style.overflow='hidden';
+  }
+  function closeModal(){document.getElementById('modal-backdrop').classList.remove('open');document.body.style.overflow='';}
+  function handleBackdropClick(e){if(e.target===document.getElementById('modal-backdrop'))closeModal();}
+  function switchTab(type){
+    currentModalType=type;
+    document.getElementById('tab-day').classList.toggle('active',type==='daytrip');
+    document.getElementById('tab-night').classList.toggle('active',type==='overnight');
+    if(!currentCourseData)return;
+    const steps=currentCourseData[type]||[];let html='',lastDay=0;
+    steps.forEach(s=>{
+      const day=s.day||1;
+      if(day!==lastDay&&type==='overnight'){html+=`<div class="day-label ${day===1?'d1':'d2'}">${day===1?'1일차':'2일차'}</div>`;lastDay=day;}
+      html+=`<div class="course-item${day===2?' day2':''}"><div class="course-left"><div class="course-time">${s.time}</div><div class="c-dot"></div><div class="c-line"></div></div><div class="course-right"><div class="course-name">${s.emoji} ${s.name}</div><div class="course-tip">${s.tip}</div></div></div>`;
+    });
+    document.getElementById('course-list').innerHTML=html;
+  }
+
+  // ── 일정 저장 ───────────────────────────────────────────────────
+  let itineraries=JSON.parse(localStorage.getItem('osirankke_itin')||'[]');
+  function saveItinerary(){
+    if(!currentCourseData||!currentModalPlace)return;
+    const{name,lbl,emoji}=currentModalPlace;
+    const type=currentModalType;
+    const exists=itineraries.find(i=>i.name===name&&i.type===type);
+    if(exists){alert('이미 저장된 일정입니다!');return;}
+    itineraries.push({name,lbl,emoji,type,steps:currentCourseData[type]||[],summary:currentCourseData.summary,savedAt:new Date().toLocaleDateString('ko-KR')});
+    localStorage.setItem('osirankke_itin',JSON.stringify(itineraries));
+    updateItinCount();
+    closeModal();
+    alert(`✅ "${name}" ${type==='daytrip'?'당일치기':'1박2일'} 일정이 저장됐어요!`);
+  }
+  function updateItinCount(){
+    const el=document.getElementById('itin-count');
+    if(itineraries.length){el.textContent=itineraries.length;el.style.display='inline';}
+    else el.style.display='none';
+  }
+  function renderItinerary(){
+    const el=document.getElementById('itinerary-content');
+    if(!itineraries.length){el.innerHTML='<div class="itinerary-empty"><div class="ei-icon">🗓️</div><p>저장된 일정이 없습니다<br>관광지 코스를 확인하고 저장해보세요!</p></div>';return;}
+    el.innerHTML=`<div class="itinerary-list">${itineraries.map((it,idx)=>{
+      const stepsHtml=it.steps.map(s=>`<div class="itin-step"><div class="itin-step-time">${s.time}</div><div><div class="itin-step-name">${s.emoji} ${s.name}</div><div class="itin-step-tip">${s.tip}</div></div></div>`).join('');
+      return `<div class="itin-card">
+        <div class="itin-head">
+          <div class="itin-icon modal-icon cat-${it.lbl}">${it.emoji}</div>
+          <div><div class="itin-name">${it.name}</div><div class="itin-type">${it.type==='daytrip'?'당일치기':'1박 2일'} · 저장일 ${it.savedAt}</div></div>
+          <button class="itin-del" onclick="deleteItinerary(${idx})">삭제</button>
+        </div>
+        <div class="itin-steps">${stepsHtml}</div>
+        <div class="itin-actions">
+          <button class="itin-btn itin-btn-print" onclick="window.print()">🖨️ 인쇄</button>
+          <button class="itin-btn itin-btn-share" onclick="openShareModal(${idx})">🔗 공유</button>
+          <button class="itin-btn itin-btn-del2" onclick="deleteItinerary(${idx})">🗑️ 삭제</button>
+        </div>
+      </div>`;
+    }).join('')}</div>`;
+  }
+  function deleteItinerary(idx){
+    if(!confirm('이 일정을 삭제할까요?'))return;
+    itineraries.splice(idx,1);
+    localStorage.setItem('osirankke_itin',JSON.stringify(itineraries));
+    updateItinCount();renderItinerary();
+  }
+
+
+  // ── 토스트 알림 ──────────────────────────────────────────────────
+  function showToast(msg, type='success', duration=3000) {
+    const wrap = document.getElementById('toast-wrap');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    t.textContent = msg;
+    wrap.appendChild(t);
+    setTimeout(() => t.classList.add('show'), 10);
+    setTimeout(() => {
+      t.classList.remove('show');
+      setTimeout(() => t.remove(), 300);
+    }, duration);
+  }
+
+  // ── 관광지 상세 정보 ─────────────────────────────────────────────
+  const PLACE_INFO = {
+    '순천만국가정원': {hours:'09:00~18:00 (매월 첫째 월 휴무)', fee:'어른 8,000원 / 청소년 6,000원', parking:'무료 (2,000대)'},
+    '죽녹원':         {hours:'09:00~18:00 (연중무휴)', fee:'어른 3,000원 / 청소년 1,500원', parking:'유료 (2,000원)'},
+    '오동도':         {hours:'일출~일몰 (연중무휴)', fee:'무료', parking:'유료 (승용차 2,000원)'},
+    '화엄사':         {hours:'08:30~18:00 (연중무휴)', fee:'어른 3,500원 / 청소년 1,500원', parking:'유료 (3,000원)'},
+    '향일암':         {hours:'04:00~20:00 (연중무휴)', fee:'어른 2,000원 / 청소년 1,500원', parking:'유료 (3,000원)'},
+    '아쿠아플라넷여수':{hours:'10:00~19:00 (연중무휴)', fee:'어른 34,000원 / 청소년 29,000원', parking:'무료'},
+    '낙안읍성민속마을':{hours:'09:00~18:00 (연중무휴)', fee:'어른 4,000원 / 청소년 1,500원', parking:'무료 (500대)'},
+    '보성녹차밭':     {hours:'09:00~18:00 (연중무휴)', fee:'어른 4,000원 / 청소년 3,000원', parking:'무료'},
+    '여수해상케이블카':{hours:'09:30~21:30 (연중무휴)', fee:'왕복 어른 15,000원 / 편도 11,000원', parking:'유료'},
+    '메타세쿼이아가로수길':{hours:'09:00~18:00', fee:'어른 2,000원 / 청소년 1,000원', parking:'유료 (2,000원)'},
+    '죽녹원':         {hours:'09:00~18:00 (연중무휴)', fee:'어른 3,000원', parking:'유료'},
+    '소쇄원':         {hours:'09:00~18:00 (동절기 17:00)', fee:'어른 3,000원 / 청소년 1,500원', parking:'무료'},
+    '순천만습지':     {hours:'08:00~19:00 (계절별 상이)', fee:'어른 8,000원 (국가정원 통합)', parking:'무료'},
+    '유월드루지테마파크':{hours:'10:00~18:00 (성수기 연장)', fee:'루지 1회 10,000원~', parking:'무료'},
+    '여수수산시장':   {hours:'06:00~21:00 (연중무휴)', fee:'무료', parking:'유료 (1,000원/30분)'},
+    '동부시장':       {hours:'07:00~20:00 (일부 상이)', fee:'무료', parking:'유료'},
+    '땅끝전망대':     {hours:'09:00~18:00 (연중무휴)', fee:'어른 2,000원', parking:'무료'},
+  };
+
+  // ── 공유 기능 ────────────────────────────────────────────────────
+  let shareItinIdx = null;
+
+  function openShareModal(idx) {
+    shareItinIdx = idx;
+    const it = itineraries[idx];
+    if (!it) return;
+    const steps = it.steps.slice(0,3).map(s=>`  ${s.time} ${s.emoji} ${s.name}`).join('\n');
+    document.getElementById('share-preview').innerHTML =
+      `<div class="share-preview-title">${it.emoji} ${it.name} — ${it.type==='daytrip'?'당일치기':'1박 2일'}</div>
+      ${it.summary||''}<br><br>
+      <strong>코스 미리보기</strong><br>
+      ${it.steps.slice(0,3).map(s=>`${s.time} ${s.emoji} ${s.name}`).join('<br>')}
+      ${it.steps.length>3?`<br>... 외 ${it.steps.length-3}곳`:''}`;
+
+    // 공유 URL 생성 (현재 페이지 + 파라미터)
+    const url = `${location.origin}${location.pathname}?share=${encodeURIComponent(it.name)}&type=${it.type}`;
+    document.getElementById('share-url-input').value = url;
+    document.getElementById('share-backdrop').classList.add('open');
+  }
+
+  function closeShareModal() {
+    document.getElementById('share-backdrop').classList.remove('open');
+  }
+
+  function copyShareUrl() {
+    const input = document.getElementById('share-url-input');
+    navigator.clipboard.writeText(input.value).then(()=>{
+      showToast('링크가 복사됐어요!', 'success');
+      closeShareModal();
+    }).catch(()=>{
+      input.select(); document.execCommand('copy');
+      showToast('링크가 복사됐어요!', 'success');
+      closeShareModal();
+    });
+  }
+
+  function shareText() {
+    if (shareItinIdx === null) return;
+    const it = itineraries[shareItinIdx];
+    const text = [
+      `🗺️ [오시랑께] ${it.name} 여행 코스`,
+      `📅 ${it.type==='daytrip'?'당일치기':'1박 2일'} | 저장일 ${it.savedAt}`,
+      '',
+      ...it.steps.map(s=>`${s.time} ${s.emoji} ${s.name}`)
+    ].join('\n');
+    navigator.clipboard.writeText(text).then(()=>{
+      showToast('텍스트가 복사됐어요!', 'success');
+      closeShareModal();
+    });
+  }
+
+  function shareKakao() {
+    // 카카오 SDK 없으므로 링크 복사로 대체
+    copyShareUrl();
+    showToast('링크를 카카오톡에 붙여넣기 해주세요!', 'info', 4000);
+  }
+
+  // URL 파라미터로 공유 일정 자동 열기
+  function checkShareParam() {
+    const params = new URLSearchParams(location.search);
+    const name = params.get('share'), type = params.get('type');
+    if (!name) return;
+    const p = ALL_PLACES.find(x=>x.name===decodeURIComponent(name));
+    if (!p) return;
+    const lbl = CAT_LABEL[p.cat]||'기타';
+    setTimeout(()=>{
+      openCourseModal(p.name, lbl, CAT_EMOJI[lbl]||'✨');
+      showToast(`공유된 "${p.name}" 코스를 확인해보세요!`, 'info', 5000);
+      if (type) switchTab(type);
+    }, 500);
+  }
+
+  // ── 브라우저 알림 ────────────────────────────────────────────────
+  const notifSettings = JSON.parse(localStorage.getItem('osirankke_notif')||'{}');
+
+  function toggleNotif(type, enabled) {
+    if (enabled && Notification.permission === 'default') {
+      Notification.requestPermission().then(perm => {
+        if (perm === 'granted') {
+          notifSettings[type] = true;
+          localStorage.setItem('osirankke_notif', JSON.stringify(notifSettings));
+          showToast('알림이 설정됐어요!', 'success');
+          if (type === 'weather') scheduleWeatherNotif();
+          if (type === 'season') checkSeasonNotif();
+        } else {
+          document.getElementById(`notif-${type}`).checked = false;
+          showToast('브라우저 알림 권한이 필요해요', 'error');
+        }
+      });
+    } else if (enabled && Notification.permission === 'granted') {
+      notifSettings[type] = true;
+      localStorage.setItem('osirankke_notif', JSON.stringify(notifSettings));
+      showToast('알림이 설정됐어요!', 'success');
+      if (type === 'weather') scheduleWeatherNotif();
+      if (type === 'season') checkSeasonNotif();
+    } else {
+      notifSettings[type] = false;
+      localStorage.setItem('osirankke_notif', JSON.stringify(notifSettings));
+      showToast('알림이 해제됐어요', 'info');
+    }
+  }
+
+  function scheduleWeatherNotif() {
+    if (!weatherData) return;
+    const {temp, desc, rec} = weatherData;
+    new Notification('🌤️ 오시랑께 날씨 알림', {
+      body: `전남 현재 ${temp}°C · ${desc}\n${rec.sub}`,
+      icon: '🗺️'
+    });
+  }
+
+  function checkSeasonNotif() {
+    const month = new Date().getMonth() + 1;
+    const seasons = {
+      3:'🌸 봄! 담양 메타세쿼이아와 광양 매화마을 시즌이에요',
+      4:'🌸 벚꽃 절정! 순천만국가정원 방문 추천',
+      6:'🌊 여름! 신지명사십리해수욕장 피서 시즌',
+      7:'🌊 무더위! 여수 해상케이블카와 해수욕장 추천',
+      9:'🍂 가을! 순천만 갈대축제 시즌이에요',
+      10:'🍁 단풍! 화엄사 단풍이 절정이에요',
+      12:'❄️ 겨울! 향일암 일출과 보성 눈 덮인 녹차밭 추천',
+    };
+    const msg = seasons[month];
+    if (msg) {
+      setTimeout(()=>{
+        new Notification('📅 오시랑께 시즌 알림', { body: msg });
+      }, 2000);
+    } else {
+      showToast('현재 특별 시즌 알림이 없어요', 'info');
+    }
+  }
+
+  function initNotifSettings() {
+    Object.entries(notifSettings).forEach(([k,v])=>{
+      const el = document.getElementById(`notif-${k}`);
+      if (el) el.checked = v;
+    });
+  }
+
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal(); closeShareModal(); } });
+  window.addEventListener('load',()=>{initCharts();loadWeather();renderFavSidebar();updateItinCount();initNotifSettings();checkShareParam();});
+</script>
+</body>
+</html>
