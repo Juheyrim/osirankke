@@ -17,6 +17,26 @@
     }
     body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;}
 
+
+    /* ── 온보딩 ── */
+    .onboard-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:4000;display:flex;align-items:center;justify-content:center;}
+    .onboard-modal{background:white;border-radius:16px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.2);animation:ob-in .3s ease;}
+    @keyframes ob-in{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .onboard-hero{background:linear-gradient(135deg,#0f3d22,#1e6b3c,#4ead6e);padding:32px 28px 24px;text-align:center;}
+    .onboard-hero-icon{font-size:52px;margin-bottom:12px;}
+    .onboard-hero-title{font-size:22px;font-weight:900;color:white;margin-bottom:6px;letter-spacing:-.5px;}
+    .onboard-hero-sub{font-size:13px;color:rgba(255,255,255,.75);line-height:1.6;}
+    .onboard-steps{padding:20px 24px;}
+    .onboard-step-list{display:flex;flex-direction:column;gap:12px;margin-bottom:20px;}
+    .onboard-step-item{display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--bg);border-radius:10px;}
+    .ob-step-icon{font-size:22px;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--green-bg);}
+    .ob-step-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;}
+    .ob-step-desc{font-size:12px;color:var(--sub);line-height:1.5;}
+    .onboard-start-btn{width:100%;padding:13px;background:var(--green);color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s;}
+    .onboard-start-btn:hover{background:var(--green2);}
+    .onboard-skip{display:block;text-align:center;margin-top:10px;font-size:12px;color:var(--muted);cursor:pointer;background:none;border:none;font-family:inherit;width:100%;}
+    .onboard-skip:hover{color:var(--sub);}
+
     /* GNB */
     .gnb{background:var(--white);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 40px;position:sticky;top:0;z-index:200;}
     .gnb-logo{font-size:17px;font-weight:700;color:var(--green);letter-spacing:-.5px;}
@@ -316,7 +336,27 @@
 
     /* 모바일 (~ 767px) */
     @media (max-width: 767px) {
-      /* GNB */
+  
+    /* ── 온보딩 ── */
+    .onboard-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:4000;display:flex;align-items:center;justify-content:center;}
+    .onboard-modal{background:white;border-radius:16px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.2);animation:ob-in .3s ease;}
+    @keyframes ob-in{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .onboard-hero{background:linear-gradient(135deg,#0f3d22,#1e6b3c,#4ead6e);padding:32px 28px 24px;text-align:center;}
+    .onboard-hero-icon{font-size:52px;margin-bottom:12px;}
+    .onboard-hero-title{font-size:22px;font-weight:900;color:white;margin-bottom:6px;letter-spacing:-.5px;}
+    .onboard-hero-sub{font-size:13px;color:rgba(255,255,255,.75);line-height:1.6;}
+    .onboard-steps{padding:20px 24px;}
+    .onboard-step-list{display:flex;flex-direction:column;gap:12px;margin-bottom:20px;}
+    .onboard-step-item{display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--bg);border-radius:10px;}
+    .ob-step-icon{font-size:22px;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--green-bg);}
+    .ob-step-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;}
+    .ob-step-desc{font-size:12px;color:var(--sub);line-height:1.5;}
+    .onboard-start-btn{width:100%;padding:13px;background:var(--green);color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s;}
+    .onboard-start-btn:hover{background:var(--green2);}
+    .onboard-skip{display:block;text-align:center;margin-top:10px;font-size:12px;color:var(--muted);cursor:pointer;background:none;border:none;font-family:inherit;width:100%;}
+    .onboard-skip:hover{color:var(--sub);}
+
+    /* GNB */
       .gnb { padding: 0 16px; height: 52px; }
       .gnb-logo span { display: none; }
       .gnb-nav { display: none; }
@@ -425,8 +465,54 @@
 <body>
 
 <!-- GNB -->
+
+<!-- 온보딩 모달 -->
+<div class="onboard-overlay" id="onboard-overlay" style="display:none">
+  <div class="onboard-modal">
+    <div class="onboard-hero">
+      <div class="onboard-hero-icon">🗺️</div>
+      <div class="onboard-hero-title">오시랑께에 오신 것을 환영해요!</div>
+      <div class="onboard-hero-sub">전라남도 맞춤형 여행 추천 서비스입니다<br>상황에 맞는 관광지와 코스를 추천해드려요</div>
+    </div>
+    <div class="onboard-steps">
+      <div class="onboard-step-list">
+        <div class="onboard-step-item">
+          <div class="ob-step-icon">🎯</div>
+          <div>
+            <div class="ob-step-title">테마 &amp; 동행 선택</div>
+            <div class="ob-step-desc">여행 테마(힐링·맛집·문화·액티비티)와 함께할 동행을 선택하면 맞춤 관광지를 추천해드려요</div>
+          </div>
+        </div>
+        <div class="onboard-step-item">
+          <div class="ob-step-icon">🌤️</div>
+          <div>
+            <div class="ob-step-title">날씨 맞춤 추천</div>
+            <div class="ob-step-desc">전남 실시간 날씨를 불러와 날씨에 어울리는 여행지를 자동으로 추천해드려요</div>
+          </div>
+        </div>
+        <div class="onboard-step-item">
+          <div class="ob-step-icon">🏆</div>
+          <div>
+            <div class="ob-step-title">Top 3 코스 추천</div>
+            <div class="ob-step-desc">추천 카드를 클릭하면 당일치기·1박2일 상세 코스와 꿀팁을 확인할 수 있어요</div>
+          </div>
+        </div>
+        <div class="onboard-step-item">
+          <div class="ob-step-icon">🗓️</div>
+          <div>
+            <div class="ob-step-title">일정 저장 &amp; 공유</div>
+            <div class="ob-step-desc">마음에 드는 코스를 저장하고 인쇄하거나 링크로 공유할 수 있어요</div>
+          </div>
+        </div>
+      </div>
+      <button class="onboard-start-btn" onclick="closeOnboard()">✨ 여행 시작하기</button>
+      <button class="onboard-skip" onclick="closeOnboard()">다음에 볼게요</button>
+    </div>
+  </div>
+</div>
+
 <nav class="gnb">
-  <div class="gnb-logo">오시랑께<span> | 전라남도 여행</span></div>
+  <a class="gnb-logo" href="https://juheyrim.github.io/osirankke/" style="text-decoration:none;cursor:pointer;">오시랑께<span> | 전라남도 여행</span></a>
   <div class="gnb-nav">
     <a class="active" onclick="showPage('recommend',this)">관광지 추천</a>
     <a onclick="showPage('monthly',this)">월별 분석</a>
@@ -434,7 +520,7 @@
   </div>
   <div class="gnb-right">
     <div class="gnb-weather">☀️ <span id="weather-text">전남</span></div>
-    <button class="gnb-btn">로그인</button>
+    
   </div>
 </nav>
 
@@ -1247,7 +1333,22 @@
     });
   }
 
-  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal(); closeShareModal(); } });
+
+  // ── 온보딩 ────────────────────────────────────────────────────────
+  function closeOnboard() {
+    document.getElementById('onboard-overlay').style.display = 'none';
+    localStorage.setItem('osirankke_onboard_v2', 'done');
+  }
+  // 첫 방문 시 자동 표시
+  if (!localStorage.getItem('osirankke_onboard_v2')) {
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        document.getElementById('onboard-overlay').style.display = 'flex';
+      }, 400);
+    });
+  }
+
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal(); closeShareModal(); closeOnboard(); } });
   window.addEventListener('load',()=>{initCharts();loadWeather();renderFavSidebar();updateItinCount();initNotifSettings();checkShareParam();});
 </script>
 
