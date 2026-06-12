@@ -404,6 +404,126 @@
       .filter-toggle-btn { display: none !important; }
     }
 
+    /* ── 튜토리얼 오버레이 ── */
+    .tut-backdrop {
+      position: fixed; inset: 0; z-index: 5000;
+      pointer-events: none;
+    }
+    .tut-backdrop.active { pointer-events: all; }
+
+    /* 어두운 오버레이 (spotlight hole 제외) */
+    .tut-overlay-top, .tut-overlay-bottom, .tut-overlay-left, .tut-overlay-right {
+      position: fixed; background: rgba(0,0,0,.55); z-index: 5001;
+      transition: all .35s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* 하이라이트 테두리 */
+    .tut-highlight-ring {
+      position: fixed; z-index: 5002; border-radius: 10px;
+      box-shadow: 0 0 0 3px #4ead6e, 0 0 0 6px rgba(78,173,110,.25);
+      pointer-events: none;
+      transition: all .35s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* 말풍선 카드 */
+    .tut-card {
+      position: fixed; z-index: 5003;
+      background: white; border-radius: 14px;
+      padding: 20px 22px 16px;
+      width: 300px;
+      box-shadow: 0 8px 40px rgba(0,0,0,.22), 0 2px 8px rgba(0,0,0,.1);
+      transition: all .35s cubic-bezier(.4,0,.2,1);
+      opacity: 0; transform: translateY(8px);
+    }
+    .tut-card.visible { opacity: 1; transform: translateY(0); }
+
+    /* 말풍선 화살표 */
+    .tut-card::before {
+      content: ''; position: absolute;
+      border: 8px solid transparent;
+    }
+    .tut-card.arrow-top::before {
+      top: -16px; left: 24px;
+      border-bottom-color: white;
+    }
+    .tut-card.arrow-bottom::before {
+      bottom: -16px; left: 24px;
+      border-top-color: white;
+    }
+    .tut-card.arrow-left::before {
+      left: -16px; top: 20px;
+      border-right-color: white;
+    }
+    .tut-card.arrow-right::before {
+      right: -16px; top: 20px;
+      border-left-color: white;
+    }
+
+    .tut-step-badge {
+      display: inline-block; font-size: 11px; font-weight: 700;
+      color: var(--green); background: var(--green-bg);
+      border: 1px solid #c6dece; border-radius: 20px;
+      padding: 2px 10px; margin-bottom: 10px;
+    }
+    .tut-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .tut-desc  { font-size: 13px; color: var(--sub); line-height: 1.65; }
+
+    .tut-actions {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border);
+      gap: 8px;
+    }
+    .tut-skip {
+      font-size: 12px; color: var(--muted); background: none; border: none;
+      cursor: pointer; font-family: inherit; padding: 0;
+    }
+    .tut-skip:hover { color: var(--text); }
+    .tut-dots { display: flex; gap: 5px; flex: 1; justify-content: center; }
+    .tut-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--border); transition: background .2s;
+    }
+    .tut-dot.active { background: var(--green); }
+    .tut-next {
+      font-size: 13px; font-weight: 700; color: white;
+      background: var(--green); border: none; border-radius: 8px;
+      padding: 7px 16px; cursor: pointer; font-family: inherit;
+      transition: background .15s; white-space: nowrap;
+    }
+    .tut-next:hover { background: var(--green2); }
+
+    /* 첫 방문 환영 모달 */
+    .tut-welcome-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,.5);
+      z-index: 6000; display: flex; align-items: center; justify-content: center;
+      padding: 24px; opacity: 0; pointer-events: none; transition: opacity .3s;
+    }
+    .tut-welcome-backdrop.open { opacity: 1; pointer-events: all; }
+    .tut-welcome-modal {
+      background: white; border-radius: 16px; width: 100%; max-width: 420px;
+      padding: 32px 28px 24px; text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+      transform: translateY(16px); transition: transform .3s;
+    }
+    .tut-welcome-backdrop.open .tut-welcome-modal { transform: translateY(0); }
+    .tut-welcome-emoji { font-size: 52px; margin-bottom: 14px; }
+    .tut-welcome-title { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+    .tut-welcome-desc { font-size: 13px; color: var(--sub); line-height: 1.7; margin-bottom: 24px; }
+    .tut-welcome-btns { display: flex; flex-direction: column; gap: 8px; }
+    .tut-welcome-start {
+      padding: 12px; background: var(--green); color: white; border: none;
+      border-radius: 10px; font-size: 14px; font-weight: 700;
+      cursor: pointer; font-family: inherit; transition: background .15s;
+    }
+    .tut-welcome-start:hover { background: var(--green2); }
+    .tut-welcome-skip {
+      padding: 10px; background: none; color: var(--muted);
+      border: 1px solid var(--border); border-radius: 10px;
+      font-size: 13px; cursor: pointer; font-family: inherit;
+      transition: all .15s;
+    }
+    .tut-welcome-skip:hover { border-color: var(--green); color: var(--green); }
+
     /* 인쇄 */
     @media print{
       /* 일정 페이지만 출력 */
@@ -1274,5 +1394,248 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
+<!-- ── 튜토리얼 환영 모달 ── -->
+<div class="tut-welcome-backdrop" id="tut-welcome">
+  <div class="tut-welcome-modal">
+    <div class="tut-welcome-emoji">🗺️</div>
+    <div class="tut-welcome-title">오시랑께에 오신 걸 환영해요!</div>
+    <div class="tut-welcome-desc">
+      전라남도 여행 추천 서비스예요.<br>
+      처음 방문하셨나요? 주요 기능을<br>빠르게 살펴볼게요! (1분 소요)
+    </div>
+    <div class="tut-welcome-btns">
+      <button class="tut-welcome-start" onclick="startTutorial()">🚀 튜토리얼 시작하기</button>
+      <button class="tut-welcome-skip" onclick="closeTutorialWelcome()">괜찮아요, 바로 시작할게요</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 튜토리얼 스팟라이트 오버레이 ── -->
+<div class="tut-backdrop" id="tut-backdrop">
+  <div class="tut-overlay-top"    id="tut-ov-top"></div>
+  <div class="tut-overlay-bottom" id="tut-ov-bot"></div>
+  <div class="tut-overlay-left"   id="tut-ov-left"></div>
+  <div class="tut-overlay-right"  id="tut-ov-right"></div>
+  <div class="tut-highlight-ring" id="tut-ring"></div>
+  <div class="tut-card"           id="tut-card">
+    <div class="tut-step-badge"   id="tut-badge"></div>
+    <div class="tut-title"        id="tut-title"></div>
+    <div class="tut-desc"         id="tut-desc"></div>
+    <div class="tut-actions">
+      <button class="tut-skip" onclick="endTutorial()">건너뛰기</button>
+      <div class="tut-dots" id="tut-dots"></div>
+      <button class="tut-next" id="tut-next-btn" onclick="tutNext()">다음 →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── 튜토리얼 ────────────────────────────────────────────────────────
+const TUT_KEY = 'osirankke_tut_done';
+
+const TUT_STEPS = [
+  {
+    selector: '.gnb-nav',
+    title: '페이지 이동',
+    desc: '상단 메뉴에서 <strong>관광지 추천 · 월별 분석 · 내 여행 일정</strong> 페이지를 이동할 수 있어요.',
+    arrow: 'top', offsetY: 12,
+  },
+  {
+    selector: '#search-input',
+    title: '관광지 검색',
+    desc: '관광지 이름, 지역명(예: 여수, 담양), 음식 종류로 빠르게 검색할 수 있어요.',
+    arrow: 'left', offsetX: 12,
+  },
+  {
+    selector: '#weather-area',
+    title: '날씨 맞춤 추천',
+    desc: '현재 전남 날씨를 자동으로 불러와요. <strong>날씨 맞춤 적용</strong> 버튼을 누르면 날씨에 맞는 관광지를 추천해드려요!',
+    arrow: 'left', offsetX: 12,
+  },
+  {
+    selector: '#theme-chips',
+    title: '여행 테마 필터',
+    desc: '<strong>휴식/힐링 · 맛집탐방 · 문화/예술 · 액티비티</strong> 중 원하는 테마를 선택해보세요.',
+    arrow: 'left', offsetX: 12,
+  },
+  {
+    selector: '#companion-chips',
+    title: '동행 필터',
+    desc: '가족, 친구, 커플, 혼자 등 동행 유형을 선택하면 딱 맞는 관광지를 추천해줘요!',
+    arrow: 'left', offsetX: 12,
+  },
+  {
+    selector: '.search-btn',
+    title: '추천 결과 보기',
+    desc: '필터를 선택했다면 이 버튼을 눌러 <strong>Top 3 추천 + 관광지 목록</strong>을 확인하세요!',
+    arrow: 'bottom', offsetY: -12,
+  },
+  {
+    selector: '#top3-result',
+    title: 'Top 3 추천 카드',
+    desc: '카드를 클릭하면 <strong>추천 여행 코스</strong>를 볼 수 있어요. ★을 눌러 즐겨찾기에 추가하세요!',
+    arrow: 'top', offsetY: 12,
+  },
+  {
+    selector: '#itin-count',
+    fallbackSelector: '.gnb-nav a:last-child',
+    title: '내 여행 일정',
+    desc: '마음에 드는 코스를 <strong>일정에 저장</strong>하면 여기서 확인·출력·공유할 수 있어요.',
+    arrow: 'top', offsetY: 12,
+  },
+];
+
+let tutStep = 0;
+let tutActive = false;
+
+function showTutorialWelcome() {
+  if (localStorage.getItem(TUT_KEY)) return;
+  setTimeout(() => {
+    document.getElementById('tut-welcome').classList.add('open');
+  }, 800);
+}
+
+function closeTutorialWelcome() {
+  document.getElementById('tut-welcome').classList.remove('open');
+  localStorage.setItem(TUT_KEY, '1');
+}
+
+function startTutorial() {
+  document.getElementById('tut-welcome').classList.remove('open');
+  tutStep = 0;
+  tutActive = true;
+  document.getElementById('tut-backdrop').classList.add('active');
+  renderTutStep();
+}
+
+function getTargetEl(step) {
+  let el = document.querySelector(step.selector);
+  if (!el && step.fallbackSelector) el = document.querySelector(step.fallbackSelector);
+  return el;
+}
+
+function renderTutStep() {
+  const step = TUT_STEPS[tutStep];
+  const el = getTargetEl(step);
+  const card = document.getElementById('tut-card');
+  const total = TUT_STEPS.length;
+
+  // 도트
+  document.getElementById('tut-dots').innerHTML = TUT_STEPS.map((_,i) =>
+    `<div class="tut-dot${i===tutStep?' active':''}"></div>`).join('');
+
+  // 배지
+  document.getElementById('tut-badge').textContent = `${tutStep+1} / ${total}`;
+  document.getElementById('tut-title').textContent = step.title;
+  document.getElementById('tut-desc').innerHTML = step.desc;
+  document.getElementById('tut-next-btn').textContent = tutStep === total-1 ? '완료 🎉' : '다음 →';
+
+  if (!el) { spotlightFull(); placeCardCenter(); return; }
+
+  const rect = el.getBoundingClientRect();
+  const pad = 8;
+  const vw = window.innerWidth, vh = window.innerHeight;
+
+  // 스팟라이트 영역
+  const top    = rect.top - pad;
+  const left   = rect.left - pad;
+  const right  = rect.right + pad;
+  const bottom = rect.bottom + pad;
+
+  document.getElementById('tut-ov-top').style.cssText    = `top:0;left:0;right:0;height:${Math.max(0,top)}px`;
+  document.getElementById('tut-ov-bot').style.cssText    = `top:${bottom}px;left:0;right:0;bottom:0`;
+  document.getElementById('tut-ov-left').style.cssText   = `top:${Math.max(0,top)}px;left:0;width:${Math.max(0,left)}px;height:${bottom-Math.max(0,top)}px`;
+  document.getElementById('tut-ov-right').style.cssText  = `top:${Math.max(0,top)}px;left:${right}px;right:0;height:${bottom-Math.max(0,top)}px`;
+
+  // 하이라이트 링
+  const ring = document.getElementById('tut-ring');
+  ring.style.cssText = `top:${Math.max(0,top)}px;left:${Math.max(0,left)}px;width:${right-left}px;height:${bottom-Math.max(0,top)}px`;
+
+  // 카드 위치
+  card.className = `tut-card arrow-${step.arrow}`;
+  const cw = 300, margin = 16;
+  let cx = 0, cy = 0;
+
+  if (step.arrow === 'top') {
+    cx = Math.min(Math.max(margin, left), vw - cw - margin);
+    cy = bottom + (step.offsetY || 12);
+  } else if (step.arrow === 'bottom') {
+    cx = Math.min(Math.max(margin, left), vw - cw - margin);
+    cy = top - 160 + (step.offsetY || 0);
+  } else if (step.arrow === 'left') {
+    cx = right + (step.offsetX || 12);
+    cy = Math.min(Math.max(margin, top), vh - 200);
+    if (cx + cw > vw - margin) { cx = left - cw - (step.offsetX || 12); card.className = 'tut-card arrow-right'; }
+  } else if (step.arrow === 'right') {
+    cx = left - cw - (step.offsetX || 12);
+    cy = Math.min(Math.max(margin, top), vh - 200);
+  }
+
+  // 화면 밖 보정
+  cy = Math.max(margin, Math.min(cy, vh - 200));
+  cx = Math.max(margin, Math.min(cx, vw - cw - margin));
+
+  card.style.left = cx + 'px';
+  card.style.top  = cy + 'px';
+
+  // 페이드인
+  card.classList.remove('visible');
+  requestAnimationFrame(() => requestAnimationFrame(() => card.classList.add('visible')));
+
+  // 해당 요소 스크롤
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function spotlightFull() {
+  ['tut-ov-top','tut-ov-bot','tut-ov-left','tut-ov-right'].forEach(id =>
+    document.getElementById(id).style.cssText = '');
+  document.getElementById('tut-ring').style.cssText = 'display:none';
+}
+
+function placeCardCenter() {
+  const card = document.getElementById('tut-card');
+  card.style.left = '50%';
+  card.style.top  = '50%';
+  card.style.transform = 'translate(-50%, -50%)';
+  card.className = 'tut-card';
+}
+
+function tutNext() {
+  if (tutStep >= TUT_STEPS.length - 1) { endTutorial(); return; }
+  tutStep++;
+  renderTutStep();
+}
+
+function endTutorial() {
+  tutActive = false;
+  const backdrop = document.getElementById('tut-backdrop');
+  backdrop.classList.remove('active');
+  document.getElementById('tut-card').classList.remove('visible');
+  // 오버레이 초기화
+  ['tut-ov-top','tut-ov-bot','tut-ov-left','tut-ov-right'].forEach(id =>
+    document.getElementById(id).style.cssText = 'width:0;height:0');
+  localStorage.setItem(TUT_KEY, '1');
+  showToast('튜토리얼 완료! 전남 여행을 즐겨보세요 🎉', 'success', 4000);
+}
+
+// 리사이즈 시 카드 위치 재조정
+window.addEventListener('resize', () => { if (tutActive) renderTutStep(); });
+
+// 환영 모달 표시 (load 이후)
+window.addEventListener('load', () => { showTutorialWelcome(); });
+
+// GNB 오른쪽에 튜토리얼 재시작 버튼 추가
+document.addEventListener('DOMContentLoaded', () => {
+  const right = document.querySelector('.gnb-right');
+  if (right) {
+    const btn = document.createElement('button');
+    btn.className = 'gnb-btn';
+    btn.textContent = '❓ 도움말';
+    btn.title = '튜토리얼 다시 보기';
+    btn.onclick = () => { tutStep = 0; tutActive = true; document.getElementById('tut-backdrop').classList.add('active'); renderTutStep(); };
+    right.insertBefore(btn, right.firstChild);
+  }
+});
+</script>
+
 </body>
-</html>
