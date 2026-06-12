@@ -1611,9 +1611,10 @@ function endTutorial() {
   const backdrop = document.getElementById('tut-backdrop');
   backdrop.classList.remove('active');
   document.getElementById('tut-card').classList.remove('visible');
-  // 오버레이 초기화
+  // 오버레이 및 하이라이트 링 완전 초기화
   ['tut-ov-top','tut-ov-bot','tut-ov-left','tut-ov-right'].forEach(id =>
     document.getElementById(id).style.cssText = 'width:0;height:0');
+  document.getElementById('tut-ring').style.cssText = 'display:none;width:0;height:0;box-shadow:none';
   localStorage.setItem(TUT_KEY, '1');
   showToast('튜토리얼 완료! 전남 여행을 즐겨보세요 🎉', 'success', 4000);
 }
